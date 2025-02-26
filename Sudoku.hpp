@@ -12,6 +12,8 @@ class Sudoku : public sf::Drawable {
 public:
   Sudoku();
   ~Sudoku();
+  
+  bool solveSelf(int** board, int row, int col) const;
 
 
 protected:
@@ -19,7 +21,9 @@ protected:
 
 private:
   sf::Font _font;
-  int** _board; // Game board, 2d array of ints
+  int** _board;
+ 
+  bool isSafe(int** board, int row, int col, int num) const; // Helper to check if a value is able to be placed.
 };
 
 class Sokoban : public sf::Drawable {

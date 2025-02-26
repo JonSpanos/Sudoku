@@ -3,6 +3,8 @@
 #include "Sudoku.hpp"
 #include <algorithm>
 #include <iostream>
+#include <random>
+#include <algorithm>
 #include <memory>
 
 namespace SB {
@@ -19,16 +21,99 @@ Sudoku::Sudoku() {
     _board[i] = new int[9];
   }
 
+  std::srand(std::time(nullptr));
   // Fill board with numbers
+  
   for (size_t i = 0; i < 9; i++) {
     for (size_t j = 0; j < 9; j++) {
-      _board[i][j] = ((j+i)%9)+1;
+      _board[i][j] = 0;
     }
   }
+
+  for (size_t i = 0; i < 9; i++) {
+    for (size_t j = 0; j < 9; j++) {
+      int flag = true;
+      while (flag) {
+        int x = (rand()%9)+1;
+        while(!isSafe(_board, i, j, x)) {
+          std::cout << i << " " << j << " -> " << x << std::endl;
+          x = (x%9)+1;
+        }
+        _board[i][j] = x;
+
+        if (solveSelf(_board, 0, 0))
+          flag = false;
+    }
+    }
+  }
+
+
+}
+
+bool Sudoku::isSafe(int** board, int row, int col, int num) const {
+  
+  // Check if num exist in the row
+  for (int x = 0; x < 9; x++)
+      if (board[row][x] == num) {
+          std::cout << "val is at " << row << "," << col << "||row: " << num << " exists at " << row << ", " << x << std::endl;
+          return false;
+      }
+
+  // Check if num exist in the col
+  for (int x = 0; x < 9; x++)
+      if (board[x][col] == num) {
+        std::cout << "val is at " << row << "," << col << "||col: " << num << " exists at " << x << ", " << col << std::endl;
+          return false;
+      }
+
+  // Check if num exist in the 3x3 sub-matrix
+  int startRow = 3*(row/3), startCol = 3*(col/3);
+
+  for (int i = startRow; i < startRow+3; i++)
+      for (int j = startCol; j < startCol+3; j++)
+          if (board[i][j] == num) {
+              std::cout << "val is at " << row << "," << col << "||3x3: " << num << " exists at " << i << ", " << j << std::endl;
+              return false;
+          }
+
+  return true;
+}
+
+bool Sudoku::solveSelf(int** board, int row, int col) const {
+
+  int n = 9;
+  // base case: Reached nth column of last row
+  if (row == n - 1 && col == n)
+      return true;
+
+  // If last column of the row go to next row
+  if (col == n) {
+      row++;
+      col = 0;
+  }
+
+  // If cell is already occupied then move forward
+  if (board[row][col] != 0)
+      return solveSelf(board, row, col + 1);
+
+  for (int num = 1; num <= n; num++) {
+
+      // If it is safe to place num at current position
+      if (isSafe(board, row, col, num)) {
+          board[row][col] = num;
+          if (solveSelf(board, row, col + 1)){
+              board[row][col] = 0;
+              return true;
+          }
+      }
+      board[row][col] = 0;
+  }
+
+    return false;
 }
 
 void Sudoku::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  
+
   // Draw individual cells
   for (size_t i = 0; i < 9; i++) {
     for (size_t j = 0; j < 9; j++) {
@@ -43,12 +128,14 @@ void Sudoku::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 
       // Cells value
       sf::Text value;
-      value.setFont(_font);
-      value.setPosition(64*i+20, 64*j+10); // Hard-coded tweaking of number to be *close* to center.
-      value.setFillColor({0,0,0});
-      value.setString(std::to_string(_board[i][j]));
-      target.draw(value);
-
+      if (_board[i][j] != 0) {
+        value.setFont(_font);
+        value.setPosition(64*i+20, 64*j+10); // Hard-coded tweaking of number to be *close* to center.
+        value.setFillColor({0,0,0});
+        value.setString(std::to_string(_board[i][j]));
+        target.draw(value);
+      }
+      
     }
   }
 

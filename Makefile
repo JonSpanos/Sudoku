@@ -20,7 +20,7 @@ $(PROGRAM): main.o $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
 
 $(PROGRAM).a: main.o $(OBJECTS)
-	ar rcs Sokoban.a $(OBJECTS)
+	ar rcs Sudoku.a $(OBJECTS)
 
 test: test.o $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
